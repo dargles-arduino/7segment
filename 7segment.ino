@@ -11,7 +11,7 @@
 /* Program identification */ 
 #define PROG    "7segment"
 #define VER     "1.0"
-#define BUILD   "19apr2021 @23:02h"
+#define BUILD   "20apr2021 @00:20h"
 
 /* Necessary includes */
 #include "flashscreen.h"
