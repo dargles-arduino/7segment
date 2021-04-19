@@ -1,48 +1,33 @@
 /**
  * Program: 7segment
  * Purpose:
- *   A basic program to control a motor via the Arduino PWM feature.
- *   Notes:
- *   1) analogWrite() is an inbuilt function used to provide pwm on a pin
- *   2) pwm is available on the nano as folOFFs;
- *      Board           || PWM Pins           || PWM Frequency
- *      Uno, Nano, Mini || 3, 5, 6, 9, 10, 11 || 490 Hz (pins 5 and 6: 980 Hz)
- *   3) Warning: The PWM outputs generated on pins 5 and 6 will have ONer-
- *      than-expected duty cycles. This is because of interactions with the 
- *      millis() and delay() functions, which share the same internal timer 
- *      used to generate those PWM outputs. This will be noticed mostly on OFF 
- *      duty-cycle settings (e.g. 0 - 10) and may result in a value of 0 not 
- *      fully turning off the output on pins 5 and 6.
+ *   A basic program to output a digit to a 7 segment display. The one I am using
+ *   is a common anode, so this means I have to use reverse logic - on is off, etc.
+ *   I'm using the 3V3 supply on the Arduino, hence 180R resistors to power the 
+ *   individual segments at about 10mA.
  * @author: David Argles, d.argles@gmx.com
  */
 
 /* Program identification */ 
 #define PROG    "7segment"
 #define VER     "1.0"
-#define BUILD   "19apr2021 @17:08h"
+#define BUILD   "19apr2021 @23:02h"
 
 /* Necessary includes */
 #include "flashscreen.h"
+#include "segments.h"
 
 /* Global "defines" - may have to look like variables because of type */
 #define BAUDRATE    115200     // Baudrate for serial output
 #define ANALOGUE_IN A0
-#define SEG_A       4 // 7 //D4
-#define SEG_B       5 // 8 //D5
-#define SEG_C       6 // 
-#define SEG_D       7 // 
-#define SEG_E       8 //
-#define SEG_F       3 // 6 //D3
-#define SEG_G       2 // 5 //D2
-// The next two are to allow for reverse logic (common anode)
-#define ON          0
-#define OFF         1
 
 /* ----- Initialisation ------------------------------------------------- */
 
 /* Global stuff that must happen outside setup() */
 flashscreen flash;
 int reading = 0;
+/* seg defines the pin #s for segments a,b,c,d,e,f,g */
+int seg[] = {4,5,6,7,8,3,2};
 
 void setup() {
   Serial.begin(BAUDRATE);           // Start up the serial output port
@@ -50,74 +35,26 @@ void setup() {
   flash.message(PROG, VER, BUILD);  // Send program details to serial output
 
   // Set the display pins to be outputs:
-  pinMode(SEG_A, OUTPUT);
-  pinMode(SEG_B, OUTPUT);
-  pinMode(SEG_C, OUTPUT);
-  pinMode(SEG_D, OUTPUT);
-  pinMode(SEG_E, OUTPUT);
-  pinMode(SEG_F, OUTPUT);
-  pinMode(SEG_G, OUTPUT);
+  for (int i=0;i<7;i++){
+    pinMode(seg[i], OUTPUT);
+  }
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  reading = analogRead(ANALOGUE_IN)/100;    // read the input pin, scale to 0 -> 10
+  // read the input pin, scale to 0 -> 10
+  reading = analogRead(ANALOGUE_IN)/100;
 
-  switch (reading){
-    case 0:
-      digitalWrite(SEG_A, OFF);
-      digitalWrite(SEG_B, OFF);
-      digitalWrite(SEG_C, OFF);
-      digitalWrite(SEG_D, OFF);
-      digitalWrite(SEG_E, OFF);
-      digitalWrite(SEG_F, OFF);
-      digitalWrite(SEG_G, OFF);
-      break;
-    case 1:
-      digitalWrite(SEG_A, ON);
-      digitalWrite(SEG_B, OFF);
-      digitalWrite(SEG_C, OFF);
-      digitalWrite(SEG_D, OFF);
-      digitalWrite(SEG_E, OFF);
-      digitalWrite(SEG_F, OFF);
-      digitalWrite(SEG_G, OFF);
-      break;
-    case 2:
-      digitalWrite(SEG_A, OFF);
-      digitalWrite(SEG_B, ON);
-      digitalWrite(SEG_C, OFF);
-      digitalWrite(SEG_D, OFF);
-      digitalWrite(SEG_E, OFF);
-      digitalWrite(SEG_F, OFF);
-      digitalWrite(SEG_G, OFF);
-      break;
-    case 3:
-      digitalWrite(SEG_A, OFF);
-      digitalWrite(SEG_B, OFF);
-      digitalWrite(SEG_C, ON);
-      digitalWrite(SEG_D, OFF);
-      digitalWrite(SEG_E, OFF);
-      digitalWrite(SEG_F, OFF);
-      digitalWrite(SEG_G, OFF);
-      break;
-    case 4:
-      digitalWrite(SEG_A, OFF);
-      digitalWrite(SEG_B, OFF);
-      digitalWrite(SEG_C, OFF);
-      digitalWrite(SEG_D, ON);
-      digitalWrite(SEG_E, OFF);
-      digitalWrite(SEG_F, OFF);
-      digitalWrite(SEG_G, OFF);
-      break;
-    default:
-      digitalWrite(SEG_A, ON);
-      digitalWrite(SEG_B, ON);
-      digitalWrite(SEG_C, ON);
-      digitalWrite(SEG_D, ON);
-      digitalWrite(SEG_E, ON);
-      digitalWrite(SEG_F, ON);
-      digitalWrite(SEG_G, ON);
-      break;
+  // display the relevant digit on the 7 segment display
+  for (int j=0;j<7;j++){
+    digitalWrite(seg[j],seg_display[reading][j]);
   }
-  Serial.println(reading);
+
+  /*
+  // This bit is for testing
+  for (int i=0;i<7;i++){
+    Serial.print(seg_display[reading][i]);
+  }
+  Serial.println();
+  delay(1000);
+  Serial.println(reading); */
 }
